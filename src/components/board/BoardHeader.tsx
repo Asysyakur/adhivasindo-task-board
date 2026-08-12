@@ -45,19 +45,21 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onOpenFilter }) => {
 
   return (
     <>
-      <header className="board-header bg-white border-b border-slate-200/80 px-4 py-3 sticky top-0 z-20 shadow-xs">
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 max-w-full">
-          {/* Left & Middle Section: Board Title, Avatars & Invite */}
-          <div className="flex items-center gap-4 flex-wrap">
+      <header className="board-header bg-white border-b border-slate-200/80 px-3 py-2.5 sm:px-4 sm:py-3 sticky top-0 z-20 shadow-xs">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2 md:gap-3 max-w-full">
+          {/* Row 1 (Mobile & Desktop): Board Title, Avatars & Invite */}
+          <div className="flex items-center justify-between md:justify-start gap-3 w-full md:w-auto">
             {/* Board Title Dropdown Selector */}
             <div className="relative">
               <button
                 onClick={() => setShowBoardDropdown((prev) => !prev)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-800 rounded-xl transition-all cursor-pointer shadow-2xs group"
+                className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-800 rounded-xl transition-all cursor-pointer shadow-2xs group"
               >
-                <LockKeyhole className="w-4 h-4 text-slate-600" />
-                <span className="text-base font-bold tracking-tight">{activeBoard?.name || 'Adhivasindo'}</span>
-                <ChevronDown className="w-4 h-4 text-slate-600 group-hover:text-slate-700 transition-colors" />
+                <LockKeyhole className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 shrink-0" />
+                <span className="text-sm sm:text-base font-bold tracking-tight max-w-[130px] sm:max-w-none truncate">
+                  {activeBoard?.name || 'Adhivasindo'}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 group-hover:text-slate-700 transition-colors shrink-0" />
               </button>
 
               {/* Board Switcher Dropdown Menu */}
@@ -67,7 +69,7 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onOpenFilter }) => {
                     className="fixed inset-0 z-40"
                     onClick={() => setShowBoardDropdown(false)}
                   />
-                  <div className="absolute top-11 left-0 z-50 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute top-10 left-0 z-50 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                       Switch Board Workspace
                     </div>
@@ -111,50 +113,52 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onOpenFilter }) => {
             </div>
 
             {/* User Avatars & Invite Button */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 shrink-0">
               <AvatarStack users={users} maxCount={4} size="md" />
 
               <button
                 onClick={() => setShowInviteModal(true)}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/70 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/70 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs shrink-0"
               >
                 <UserPlus className="w-3.5 h-3.5 text-slate-600" />
-                <span>Invite</span>
+                <span className="hidden sm:inline">Invite</span>
               </button>
             </div>
           </div>
 
-          {/* Right Section: Filter, Export/Import, Search Input */}
-          <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+          {/* Row 2 (Mobile) & Right Section (Desktop): Search, Filter & Export */}
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            {/* Search Input */}
+            <div className="relative flex-1 md:w-64 min-w-0">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3/4 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-100 border border-transparent focus:border-blue-400 focus:bg-white text-slate-800 text-xs rounded-xl outline-none transition-all placeholder:text-slate-400"
+              />
+            </div>
+
             {/* Filter Button */}
             <button
               onClick={onOpenFilter}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-2xs shrink-0"
+              title="Toggle Filter Bar"
             >
               <Filter className="w-3.5 h-3.5" />
-              <span>Filter</span>
+              <span className="hidden sm:inline">Filter</span>
             </button>
 
             {/* Export / Import Button */}
             <button
               onClick={() => setShowExportImportModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+              className="flex items-center gap-1 px-2.5 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shadow-2xs shrink-0"
+              title="Export / Import JSON Data"
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
-              <span>Export / Import</span>
+              <span className="hidden sm:inline">Export / Import</span>
             </button>
-
-            {/* Search Input */}
-            <div className="relative flex-1 sm:w-64 min-w-[160px]">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tasks, assignees..."
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-100 border border-transparent focus:border-blue-400 focus:bg-white text-slate-800 text-xs rounded-xl outline-none transition-all placeholder:text-slate-400"
-              />
-            </div>
           </div>
         </div>
       </header>
