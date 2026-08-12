@@ -204,7 +204,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
       <DragOverlay>
         {activeTask ? (
           <div className="rotate-2 scale-105 opacity-90 shadow-2xl">
-            <TaskCard task={activeTask} users={users} />
+            <TaskCard task={activeTask} users={users} isOverlay />
           </div>
         ) : null}
       </DragOverlay>

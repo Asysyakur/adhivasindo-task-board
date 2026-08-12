@@ -1,15 +1,36 @@
 import React from 'react';
 import { Task, User } from '../../types/task';
 import { AvatarStack } from '../common/AvatarStack';
-import { Timer  , CheckSquare, MessageSquare, Paperclip } from 'lucide-react';
+import { Timer, CheckSquare, MessageSquare, Paperclip } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskCardProps {
   task: Task;
   users: User[];
   onClick?: () => void;
+  isOverlay?: boolean;
 }
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick }) => {
+export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOverlay = false }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    disabled: isOverlay,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+  };
+
   // Get assignee user objects
   const assignees = users.filter((u) => task.assigneeIds.includes(u.id));
 
@@ -35,8 +56,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick }) => {
 
   return (
     <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={onClick}
-      className="task-card group relative bg-slate-100 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden mb-3 select-none"
+      className={`task-card group relative bg-slate-100 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing overflow-hidden mb-3 select-none ${
+        isDragging ? 'ring-2 ring-blue-500 opacity-30 shadow-xl' : ''
+      }`}
     >
       {/* Cover Image */}
       {task.coverImage && (
@@ -84,7 +111,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick }) => {
             {/* Due date */}
             {task.dueDate && (
               <div className="flex items-center gap-1 bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full font-medium">
-                <Timer   className="w-3 h-3 text-sky-600" />
+                <Timer className="w-3 h-3 text-sky-600" />
                 <span>{task.dueDate}</span>
               </div>
             )}
