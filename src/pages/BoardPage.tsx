@@ -3,33 +3,20 @@ import { IonContent, IonPage } from '@ionic/react';
 import { BoardHeader } from '../components/board/BoardHeader';
 import { FilterBar } from '../components/common/FilterBar';
 import { KanbanBoard } from '../components/board/KanbanBoard';
+import { TaskDetail } from '../components/task/TaskDetail';
 import { useTaskStore } from '../store/taskStore';
 import { Task } from '../types/task';
 
 export const BoardPage: React.FC = () => {
   const [showFilterBar, setShowFilterBar] = useState(false);
-  const { setSelectedTask } = useTaskStore();
+  const { openEditModal, openCreateModal } = useTaskStore();
 
   const handleTaskClick = (task: Task) => {
-    setSelectedTask(task);
+    openEditModal(task);
   };
 
   const handleAddTaskClick = (columnId: string) => {
-    const title = prompt('Enter new task title:');
-    if (title && title.trim()) {
-      useTaskStore.getState().createTask({
-        columnId,
-        title: title.trim(),
-        description: '',
-        label: 'Feature',
-        priority: 'Medium',
-        dueDate: 'Today',
-        assigneeIds: ['user-1'],
-        checklist: [],
-        attachments: [],
-        commentsCount: 0,
-      });
-    }
+    openCreateModal(columnId);
   };
 
   return (
@@ -39,7 +26,7 @@ export const BoardPage: React.FC = () => {
           {/* Header */}
           <BoardHeader
             onOpenFilter={() => setShowFilterBar((prev) => !prev)}
-            onOpenInvite={() => alert('Invite team members feature')}
+            onOpenInvite={() => alert('Invite team members: Alex, Budi, Citra, David, Eka, Fajar')}
           />
 
           {/* Filter Bar (Collapsible / Toggleable) */}
@@ -47,6 +34,9 @@ export const BoardPage: React.FC = () => {
 
           {/* Kanban Board Container */}
           <KanbanBoard onTaskClick={handleTaskClick} onAddTaskClick={handleAddTaskClick} />
+
+          {/* Task Detail / Form Modal */}
+          <TaskDetail />
         </div>
       </IonContent>
     </IonPage>

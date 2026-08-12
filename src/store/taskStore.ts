@@ -10,19 +10,25 @@ interface TaskState {
   searchQuery: string;
   selectedLabelFilter: TaskLabel | 'All';
   selectedTask: Task | null;
+  isModalOpen: boolean;
+  activeColumnForNewTask: string | null;
 
   // Actions
   setSearchQuery: (query: string) => void;
   setLabelFilter: (label: TaskLabel | 'All') => void;
   setSelectedTask: (task: Task | null) => void;
+  openCreateModal: (columnId?: string) => void;
+  openEditModal: (task: Task) => void;
+  closeModal: () => void;
 
-  createTask: (taskData: Omit<Task, 'id'>) => void;
+  createTask: (taskData: Omit<Task, 'id'>) => string;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   moveTask: (taskId: string, sourceColId: string, destColId: string, newIndex: number) => void;
 
   toggleSubtask: (taskId: string, subtaskId: string) => void;
   addSubtask: (taskId: string, title: string) => void;
+  deleteSubtask: (taskId: string, subtaskId: string) => void;
   addColumn: (title: string) => void;
 }
 
@@ -33,10 +39,33 @@ export const useTaskStore = create<TaskState>((set) => ({
   searchQuery: '',
   selectedLabelFilter: 'All',
   selectedTask: null,
+  isModalOpen: false,
+  activeColumnForNewTask: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   setLabelFilter: (label) => set({ selectedLabelFilter: label }),
   setSelectedTask: (task) => set({ selectedTask: task }),
+
+  openCreateModal: (columnId = 'todo') =>
+    set({
+      selectedTask: null,
+      activeColumnForNewTask: columnId,
+      isModalOpen: true,
+    }),
+
+  openEditModal: (task) =>
+    set({
+      selectedTask: task,
+      activeColumnForNewTask: task.columnId,
+      isModalOpen: true,
+    }),
+
+  closeModal: () =>
+    set({
+      selectedTask: null,
+      isModalOpen: false,
+      activeColumnForNewTask: null,
+    }),
 
   createTask: (taskData) => {
     const newId = `task-${Date.now()}`;
@@ -50,9 +79,7 @@ export const useTaskStore = create<TaskState>((set) => ({
       if (!targetCol) return state;
 
       const updatedColumns = state.columns.map((col) =>
-        col.id === newTask.columnId
-          ? { ...col, taskIds: [...col.taskIds, newId] }
-          : col
+        col.id === newTask.columnId ? { ...col, taskIds: [...col.taskIds, newId] } : col
       );
 
       return {
@@ -60,6 +87,8 @@ export const useTaskStore = create<TaskState>((set) => ({
         columns: updatedColumns,
       };
     });
+
+    return newId;
   },
 
   updateTask: (id, updates) => {
@@ -108,6 +137,7 @@ export const useTaskStore = create<TaskState>((set) => ({
         tasks: newTasks,
         columns: updatedColumns,
         selectedTask: state.selectedTask?.id === id ? null : state.selectedTask,
+        isModalOpen: state.selectedTask?.id === id ? false : state.isModalOpen,
       };
     });
   },
@@ -188,6 +218,21 @@ export const useTaskStore = create<TaskState>((set) => ({
         ...task,
         checklist: [...task.checklist, newItem],
       };
+
+      return {
+        tasks: { ...state.tasks, [taskId]: updatedTask },
+        selectedTask: state.selectedTask?.id === taskId ? updatedTask : state.selectedTask,
+      };
+    });
+  },
+
+  deleteSubtask: (taskId, subtaskId) => {
+    set((state) => {
+      const task = state.tasks[taskId];
+      if (!task) return state;
+
+      const updatedChecklist = task.checklist.filter((item) => item.id !== subtaskId);
+      const updatedTask = { ...task, checklist: updatedChecklist };
 
       return {
         tasks: { ...state.tasks, [taskId]: updatedTask },
