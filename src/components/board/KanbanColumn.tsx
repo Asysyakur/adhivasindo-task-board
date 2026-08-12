@@ -27,20 +27,20 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   return (
     <div
       ref={setNodeRef}
-      className={`kanban-column w-80 shrink-0 rounded-2xl p-3 flex flex-col max-h-fulltransition-colors ${
-        isOver ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-400/20' : ''
+      className={`kanban-column w-80 shrink-0 rounded-2xl p-3 flex flex-col h-full max-h-full min-h-0 transition-colors ${
+        isOver ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-400/20' : 'bg-slate-50/60'
       }`}
     >
       {/* Column Header */}
-      <div className="column-header flex items-center justify-between px-1 mb-3">
+      <div className="column-header flex items-center justify-between px-1 mb-3 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-slate-800 tracking-tight">{column.title}</span>
+          <span className="text-xl font-bold text-slate-800 tracking-tight">{column.title}</span>
           <button
             onClick={() => onAddTask?.(column.id)}
-            className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 flex items-center justify-center transition-colors cursor-pointer"
             title="Add task"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
           </button>
           <button
             className="text-slate-600 hover:bg-slate-100 hover:rounded-md transition-colors p-1"
@@ -55,13 +55,13 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
             className="text-slate-600 hover:bg-slate-100 hover:rounded-md transition-colors p-1"
             title="Expand/Collapse"
           >
-            <Minimize2 className="w-5 h-5" />
+            <Minimize2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Task List */}
-      <div className="task-list flex-1 overflow-y-auto pr-0.5 space-y-3 min-h-[120px] scrollbar-thin">
+      {/* Task List - Vertical Scrollable Container inside Column */}
+      <div className="task-list flex-1 min-h-0 overflow-y-auto pr-0.5 space-y-3 scrollbar-thin">
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.length > 0 ? (
             tasks.map((task) => (

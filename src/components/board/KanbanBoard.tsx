@@ -24,8 +24,18 @@ interface KanbanBoardProps {
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTaskClick }) => {
-  const { columns, tasks, users, searchQuery, selectedLabelFilter, moveTask, addColumn } =
-    useTaskStore();
+  const {
+    columns,
+    tasks,
+    users,
+    searchQuery,
+    selectedLabelFilter,
+    selectedAssigneeFilter,
+    selectedDueDateFilter,
+    moveTask,
+    addColumn,
+  } = useTaskStore();
+
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -39,23 +49,42 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
     })
   );
 
-  // Filter tasks by search query and label filter
+  // Filter tasks by Label, Assignee, Due Date, and Search Query
   const getFilteredTasksForColumn = (columnTaskIds: string[]) => {
     return columnTaskIds
       .map((id) => tasks[id])
       .filter(Boolean)
       .filter((task) => {
-        // Label filter
+        // 1. Label filter
         if (selectedLabelFilter !== 'All' && task.label !== selectedLabelFilter) {
           return false;
         }
 
-        // Search query filter
+        // 2. Assignee filter
+        if (
+          selectedAssigneeFilter !== 'All' &&
+          !task.assigneeIds.includes(selectedAssigneeFilter)
+        ) {
+          return false;
+        }
+
+        // 3. Due Date filter
+        if (selectedDueDateFilter !== 'All' && task.dueDate !== selectedDueDateFilter) {
+          return false;
+        }
+
+        // 4. Search query filter (matches title, description, assignee name, label, due date)
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
           const matchTitle = task.title.toLowerCase().includes(q);
           const matchDesc = task.description.toLowerCase().includes(q);
-          return matchTitle || matchDesc;
+          const matchLabel = task.label.toLowerCase().includes(q);
+          const matchDueDate = task.dueDate ? task.dueDate.toLowerCase().includes(q) : false;
+          const matchAssignee = users.some(
+            (u) => task.assigneeIds.includes(u.id) && u.name.toLowerCase().includes(q)
+          );
+
+          return matchTitle || matchDesc || matchLabel || matchDueDate || matchAssignee;
         }
 
         return true;
@@ -79,7 +108,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
     const activeTaskObj = tasks[activeId];
     if (!activeTaskObj) return;
 
-    // Find target column ID
     let overColId: string | null = null;
 
     if (columns.some((col) => col.id === overId)) {
@@ -90,7 +118,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
 
     if (!overColId || activeTaskObj.columnId === overColId) return;
 
-    // Temporarily move task during drag over
     const destCol = columns.find((c) => c.id === overColId);
     if (destCol) {
       moveTask(activeId, activeTaskObj.columnId, overColId, destCol.taskIds.length);
@@ -144,8 +171,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="kanban-board-container flex-1 overflow-x-auto overflow-y-hidden p-6 bg-white scrollbar-thin">
-        <div className="flex gap-5 items-start h-full min-w-max pb-4">
+      <div className="kanban-board-container flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-6 bg-white scrollbar-thin">
+        <div className="flex gap-5 items-stretch h-full min-h-0 min-w-max pb-2">
           {columns.map((col) => {
             const colTasks = getFilteredTasksForColumn(col.taskIds);
             return (

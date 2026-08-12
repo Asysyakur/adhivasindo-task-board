@@ -9,6 +9,8 @@ interface TaskState {
   users: User[];
   searchQuery: string;
   selectedLabelFilter: TaskLabel | 'All';
+  selectedAssigneeFilter: string | 'All';
+  selectedDueDateFilter: string | 'All';
   selectedTask: Task | null;
   isModalOpen: boolean;
   activeColumnForNewTask: string | null;
@@ -16,6 +18,9 @@ interface TaskState {
   // Actions
   setSearchQuery: (query: string) => void;
   setLabelFilter: (label: TaskLabel | 'All') => void;
+  setAssigneeFilter: (userId: string | 'All') => void;
+  setDueDateFilter: (dueDate: string | 'All') => void;
+  resetFilters: () => void;
   setSelectedTask: (task: Task | null) => void;
   openCreateModal: (columnId?: string) => void;
   openEditModal: (task: Task) => void;
@@ -38,12 +43,23 @@ export const useTaskStore = create<TaskState>((set) => ({
   users: MOCK_USERS,
   searchQuery: '',
   selectedLabelFilter: 'All',
+  selectedAssigneeFilter: 'All',
+  selectedDueDateFilter: 'All',
   selectedTask: null,
   isModalOpen: false,
   activeColumnForNewTask: null,
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   setLabelFilter: (label) => set({ selectedLabelFilter: label }),
+  setAssigneeFilter: (userId) => set({ selectedAssigneeFilter: userId }),
+  setDueDateFilter: (dueDate) => set({ selectedDueDateFilter: dueDate }),
+  resetFilters: () =>
+    set({
+      searchQuery: '',
+      selectedLabelFilter: 'All',
+      selectedAssigneeFilter: 'All',
+      selectedDueDateFilter: 'All',
+    }),
   setSelectedTask: (task) => set({ selectedTask: task }),
 
   openCreateModal: (columnId = 'todo') =>
