@@ -3,6 +3,7 @@ import { Task, TaskLabel, TaskPriority, ChecklistItem, Attachment } from '../../
 import { useTaskStore } from '../../store/taskStore';
 import { AttachmentList } from './AttachmentList';
 import { Checklist } from './Checklist';
+import { ConfirmModal } from '../common/ConfirmModal';
 import {
   X,
   Check,
@@ -56,6 +57,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   const [showAssigneePicker, setShowAssigneePicker] = useState(false);
   const [showCoverPicker, setShowCoverPicker] = useState(false);
   const [isCoverDragging, setIsCoverDragging] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -198,9 +200,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   const handleDelete = () => {
-    if (task && confirm('Are you sure you want to delete this task?')) {
-      deleteTask(task.id);
-      onClose();
+    if (task) {
+      setShowDeleteConfirm(true);
     }
   };
 
@@ -575,6 +576,21 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           </div>
         </div>
       </form>
+
+      {/* Delete Task Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Delete Task?"
+        message={`Are you sure you want to delete task "${title}"? This action cannot be undone.`}
+        confirmText="Delete Task"
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => {
+          if (task) {
+            deleteTask(task.id);
+            onClose();
+          }
+        }}
+      />
     </div>
   );
 };

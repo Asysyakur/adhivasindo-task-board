@@ -4,7 +4,23 @@ import { BoardColumn, Task, TaskLabel, User } from '../types/task';
 import { INITIAL_COLUMNS, INITIAL_TASKS } from '../data/mockTasks';
 import { MOCK_USERS } from '../data/mockUsers';
 
+export type ToastType = 'success' | 'info' | 'danger';
+
+export interface ToastInfo {
+  id: string;
+  title: string;
+  message: string;
+  type: ToastType;
+}
+
+export interface BoardItem {
+  id: string;
+  name: string;
+}
+
 interface TaskState {
+  boards: BoardItem[];
+  activeBoardId: string;
   columns: BoardColumn[];
   tasks: Record<string, Task>;
   users: User[];
@@ -15,8 +31,11 @@ interface TaskState {
   selectedTask: Task | null;
   isModalOpen: boolean;
   activeColumnForNewTask: string | null;
+  toast: ToastInfo | null;
 
   // Actions
+  setActiveBoard: (boardId: string) => void;
+  createBoard: (name: string) => void;
   setSearchQuery: (query: string) => void;
   setLabelFilter: (label: TaskLabel | 'All') => void;
   setAssigneeFilter: (userId: string | 'All') => void;
@@ -26,6 +45,8 @@ interface TaskState {
   openCreateModal: (columnId?: string) => void;
   openEditModal: (task: Task) => void;
   closeModal: () => void;
+  showToast: (message: string, type?: ToastType, title?: string) => void;
+  hideToast: () => void;
 
   createTask: (taskData: Omit<Task, 'id'>) => string;
   updateTask: (id: string, updates: Partial<Task>) => void;
@@ -36,11 +57,22 @@ interface TaskState {
   addSubtask: (taskId: string, title: string) => void;
   deleteSubtask: (taskId: string, subtaskId: string) => void;
   addColumn: (title: string) => void;
+  renameColumn: (columnId: string, newTitle: string) => void;
+  deleteColumn: (columnId: string) => void;
+  moveColumn: (columnId: string, direction: 'left' | 'right') => void;
 }
+
+const DEFAULT_BOARDS: BoardItem[] = [
+  { id: 'board-1', name: 'Adhivasindo' },
+  { id: 'board-2', name: 'SCRUM Sprint 17' },
+  { id: 'board-3', name: 'Adhivasindo Mobile App' },
+];
 
 export const useTaskStore = create<TaskState>()(
   persist(
     (set) => ({
+      boards: DEFAULT_BOARDS,
+      activeBoardId: 'board-1',
       columns: INITIAL_COLUMNS,
       tasks: INITIAL_TASKS,
       users: MOCK_USERS,
@@ -51,6 +83,38 @@ export const useTaskStore = create<TaskState>()(
       selectedTask: null,
       isModalOpen: false,
       activeColumnForNewTask: null,
+      toast: null,
+
+      setActiveBoard: (boardId) => {
+        set((state) => {
+          const board = state.boards.find((b) => b.id === boardId);
+          if (!board) return state;
+          return {
+            activeBoardId: boardId,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Pindah Board',
+              message: `Sekarang melihat papan "${board.name}".`,
+              type: 'info',
+            },
+          };
+        });
+      },
+
+      createBoard: (name) => {
+        const newBoardId = `board-${Date.now()}`;
+        const newBoard: BoardItem = { id: newBoardId, name };
+        set((state) => ({
+          boards: [...state.boards, newBoard],
+          activeBoardId: newBoardId,
+          toast: {
+            id: `toast-${Date.now()}`,
+            title: 'Board Dibuat',
+            message: `Papan baru "${name}" berhasil ditambahkan.`,
+            type: 'success',
+          },
+        }));
+      },
 
       setSearchQuery: (query) => set({ searchQuery: query }),
       setLabelFilter: (label) => set({ selectedLabelFilter: label }),
@@ -64,6 +128,25 @@ export const useTaskStore = create<TaskState>()(
           selectedDueDateFilter: 'All',
         }),
       setSelectedTask: (task) => set({ selectedTask: task }),
+
+      showToast: (message, type = 'info', title) => {
+        const defaultTitle =
+          type === 'success'
+            ? 'Berhasil'
+            : type === 'danger'
+            ? 'Dihapus'
+            : 'Pemberitahuan';
+        set({
+          toast: {
+            id: `toast-${Date.now()}`,
+            title: title || defaultTitle,
+            message,
+            type,
+          },
+        });
+      },
+
+      hideToast: () => set({ toast: null }),
 
       openCreateModal: (columnId = 'todo') =>
         set({
@@ -104,6 +187,12 @@ export const useTaskStore = create<TaskState>()(
           return {
             tasks: { ...state.tasks, [newId]: newTask },
             columns: updatedColumns,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Task Berhasil Dibuat',
+              message: `Tugas "${newTask.title}" telah ditambahkan ke papan.`,
+              type: 'success',
+            },
           };
         });
 
@@ -117,7 +206,6 @@ export const useTaskStore = create<TaskState>()(
 
           const updatedTask = { ...existing, ...updates };
 
-          // Handle column move if columnId changed in update
           let updatedColumns = state.columns;
           if (updates.columnId && updates.columnId !== existing.columnId) {
             updatedColumns = state.columns.map((col) => {
@@ -135,6 +223,12 @@ export const useTaskStore = create<TaskState>()(
             tasks: { ...state.tasks, [id]: updatedTask },
             columns: updatedColumns,
             selectedTask: state.selectedTask?.id === id ? updatedTask : state.selectedTask,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Task Diperbarui',
+              message: `Perubahan pada "${updatedTask.title}" berhasil disimpan.`,
+              type: 'info',
+            },
           };
         });
       },
@@ -157,6 +251,12 @@ export const useTaskStore = create<TaskState>()(
             columns: updatedColumns,
             selectedTask: state.selectedTask?.id === id ? null : state.selectedTask,
             isModalOpen: state.selectedTask?.id === id ? false : state.isModalOpen,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Task Dihapus',
+              message: `Tugas "${taskToDelete.title}" telah dihapus dari papan.`,
+              type: 'danger',
+            },
           };
         });
       },
@@ -270,6 +370,72 @@ export const useTaskStore = create<TaskState>()(
           };
           return {
             columns: [...state.columns, newCol],
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Kolom Dibuat',
+              message: `Daftar kolom baru "${title}" berhasil ditambahkan.`,
+              type: 'success',
+            },
+          };
+        });
+      },
+
+      renameColumn: (columnId, newTitle) => {
+        set((state) => ({
+          columns: state.columns.map((col) =>
+            col.id === columnId ? { ...col, title: newTitle } : col
+          ),
+          toast: {
+            id: `toast-${Date.now()}`,
+            title: 'Kolom Diubah',
+            message: `Nama kolom telah diubah menjadi "${newTitle}".`,
+            type: 'info',
+          },
+        }));
+      },
+
+      deleteColumn: (columnId) => {
+        set((state) => {
+          const colToDelete = state.columns.find((c) => c.id === columnId);
+          if (!colToDelete) return state;
+
+          // Delete all tasks in column
+          const newTasks = { ...state.tasks };
+          colToDelete.taskIds.forEach((tId) => delete newTasks[tId]);
+
+          return {
+            columns: state.columns.filter((c) => c.id !== columnId),
+            tasks: newTasks,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Kolom Dihapus',
+              message: `Kolom "${colToDelete.title}" beserta tugasnya telah dihapus.`,
+              type: 'danger',
+            },
+          };
+        });
+      },
+
+      moveColumn: (columnId, direction) => {
+        set((state) => {
+          const index = state.columns.findIndex((c) => c.id === columnId);
+          if (index === -1) return state;
+
+          const newIndex = direction === 'left' ? index - 1 : index + 1;
+          if (newIndex < 0 || newIndex >= state.columns.length) return state;
+
+          const newColumns = [...state.columns];
+          const [movedCol] = newColumns.splice(index, 1);
+          newColumns.splice(newIndex, 0, movedCol);
+
+          return {
+            columns: newColumns,
+            toast: {
+              id: `toast-${Date.now()}`,
+              title: 'Kolom Dipindahkan',
+              message: `Kolom "${movedCol.title}" dipindahkan ke ${direction === 'left' ? 'kiri' : 'kanan'}.`,
+              type: 'info',
+            },
           };
         });
       },
@@ -277,6 +443,8 @@ export const useTaskStore = create<TaskState>()(
     {
       name: 'adhivasindo-task-board-storage',
       partialize: (state) => ({
+        boards: state.boards,
+        activeBoardId: state.activeBoardId,
         columns: state.columns,
         tasks: state.tasks,
         users: state.users,

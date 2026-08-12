@@ -3,6 +3,7 @@ import { useTaskStore } from '../../store/taskStore';
 import { KanbanColumn } from './KanbanColumn';
 import { Task } from '../../types/task';
 import { Plus } from 'lucide-react';
+import { SimpleFormModal } from '../common/SimpleFormModal';
 import {
   DndContext,
   DragOverlay,
@@ -37,6 +38,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
   } = useTaskStore();
 
   const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [isAddListModalOpen, setIsAddListModalOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -145,7 +147,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
       newIndex = targetCol ? targetCol.taskIds.length : 0;
     } else if (tasks[overId]) {
       overColId = tasks[overId].columnId;
-      const targetCol = columns.find((c) => c.id === overColId);
+      const targetCol = columns.find((c) => c.id === overId);
       if (targetCol) {
         newIndex = targetCol.taskIds.indexOf(overId);
       }
@@ -153,13 +155,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
 
     if (overColId) {
       moveTask(activeId, activeTaskObj.columnId, overColId, newIndex);
-    }
-  };
-
-  const handleAddNewList = () => {
-    const title = prompt('Enter list title:');
-    if (title && title.trim()) {
-      addColumn(title.trim());
     }
   };
 
@@ -173,7 +168,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
     >
       <div className="kanban-board-container flex-1 min-h-0 overflow-x-auto overflow-y-hidden p-6 bg-white scrollbar-thin">
         <div className="flex gap-5 items-stretch h-full min-h-0 min-w-max pb-2">
-          {columns.map((col) => {
+          {columns.map((col, index) => {
             const colTasks = getFilteredTasksForColumn(col.taskIds);
             return (
               <KanbanColumn
@@ -181,6 +176,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
                 column={col}
                 tasks={colTasks}
                 users={users}
+                columnIndex={index}
+                totalColumns={columns.length}
                 onAddTask={onAddTaskClick}
                 onTaskClick={onTaskClick}
               />
@@ -190,15 +187,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
           {/* Add New List Button Column */}
           <div className="w-72 shrink-0">
             <button
-              onClick={handleAddNewList}
-              className="w-full h-14 bg-slate-100 hover:bg-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-800 hover:text-blue-600 text-sm font-semibold transition-all shadow-xs hover:shadow-sm cursor-pointer"
+              onClick={() => setIsAddListModalOpen(true)}
+              className="w-full h-14 bg-slate-100 hover:bg-slate-200 rounded-2xl flex items-center justify-center gap-2 text-slate-800 hover:text-blue-600 text-sm font-semibold transition-all shadow-xs hover:shadow-sm cursor-pointer border border-dashed border-slate-300 hover:border-blue-400"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-blue-600" />
               <span>Add new List</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Add List Reusable Modal */}
+      <SimpleFormModal
+        isOpen={isAddListModalOpen}
+        type="column"
+        onClose={() => setIsAddListModalOpen(false)}
+        onSubmit={(title) => addColumn(title)}
+      />
 
       {/* Drag Overlay for smooth preview while dragging */}
       <DragOverlay>

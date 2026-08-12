@@ -4,6 +4,7 @@ import { BoardHeader } from '../components/board/BoardHeader';
 import { FilterBar } from '../components/common/FilterBar';
 import { KanbanBoard } from '../components/board/KanbanBoard';
 import { TaskDetail } from '../components/task/TaskDetail';
+import { ToastNotification } from '../components/common/ToastNotification';
 import { useTaskStore } from '../store/taskStore';
 import { Task } from '../types/task';
 
@@ -26,7 +27,6 @@ export const BoardPage: React.FC = () => {
           {/* Header */}
           <BoardHeader
             onOpenFilter={() => setShowFilterBar((prev) => !prev)}
-            onOpenInvite={() => alert('Invite team members: Alex, Budi, Citra, David, Eka, Fajar')}
           />
 
           {/* Filter Bar (Collapsible / Toggleable) */}
@@ -37,6 +37,9 @@ export const BoardPage: React.FC = () => {
 
           {/* Task Detail / Form Modal */}
           <TaskDetail />
+
+          {/* Toast Notification */}
+          <ToastNotification />
         </div>
       </IonContent>
     </IonPage>
