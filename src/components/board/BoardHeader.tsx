@@ -83,11 +83,10 @@ export const BoardHeader: React.FC<BoardHeaderProps> = ({ onOpenFilter }) => {
                               setActiveBoard(b.id);
                               setShowBoardDropdown(false);
                             }}
-                            className={`w-full px-3.5 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
-                              isActive
+                            className={`w-full px-3.5 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${isActive
                                 ? 'bg-blue-50 text-blue-700 font-bold'
                                 : 'text-slate-700 hover:bg-slate-50'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-2">
                               <Kanban className="w-3.5 h-3.5 text-slate-400" />

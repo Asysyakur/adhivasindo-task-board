@@ -27,13 +27,14 @@ export interface Task {
   title: string;
   description: string;
   assigneeIds: string[];
-  dueDate: string; // e.g., "8 Aug", "12 Aug", "2025-08-20"
+  dueDate: string; // e.g., "8 Aug", "12 Aug", "2026-08-20"
   label: TaskLabel;
   priority?: TaskPriority;
   checklist: ChecklistItem[];
   attachments: Attachment[];
   coverImage?: string;
   columnId: string;
+  boardName?: string;
   commentsCount?: number;
 }
 

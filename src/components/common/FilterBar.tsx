@@ -1,7 +1,8 @@
 import React from 'react';
 import { useTaskStore } from '../../store/taskStore';
 import { TaskLabel } from '../../types/task';
-import { User, Calendar, Tag, RotateCcw, Filter } from 'lucide-react';
+import { User, Tag, RotateCcw, Filter } from 'lucide-react';
+import { CalendarFilterPopover } from './CalendarFilterPopover';
 
 const LABELS: (TaskLabel | 'All')[] = ['All', 'Feature', 'Bug', 'Issue', 'Undefined'];
 
@@ -18,14 +19,10 @@ export const FilterBar: React.FC = () => {
     resetFilters,
   } = useTaskStore();
 
-  // Extract unique due dates from tasks
-  const uniqueDueDates = Array.from(
-    new Set(
-      Object.values(tasks)
-        .map((t) => t.dueDate)
-        .filter(Boolean)
-    )
-  );
+  // Extract all due dates from active tasks for date indicators
+  const taskDueDates = Object.values(tasks)
+    .map((t) => t.dueDate)
+    .filter((d): d is string => Boolean(d));
 
   const activeFiltersCount =
     (selectedLabelFilter !== 'All' ? 1 : 0) +
@@ -33,8 +30,8 @@ export const FilterBar: React.FC = () => {
     (selectedDueDateFilter !== 'All' ? 1 : 0);
 
   return (
-    <div className="filter-bar bg-white border-b border-slate-200 px-6 py-2.5 flex items-center justify-between gap-4 flex-wrap overflow-x-auto">
-      <div className="flex items-center gap-4 flex-wrap">
+    <div className="filter-bar bg-white border-b border-slate-200 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 flex-wrap relative z-10">
+      <div className="flex items-center gap-3.5 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0">
           <Filter className="w-3.5 h-3.5 text-blue-600" />
           <span>Filters</span>
@@ -49,7 +46,7 @@ export const FilterBar: React.FC = () => {
 
         {/* 1. Label Filter Pills */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs font-semibold text-slate-500 mr-1 flex items-center gap-1 shrink-0">
+          <span className="text-xs font-semibold text-slate-500 mr-0.5 flex items-center gap-1 shrink-0">
             <Tag className="w-3 h-3 text-slate-400" />
             <span>Label:</span>
           </span>
@@ -61,7 +58,7 @@ export const FilterBar: React.FC = () => {
                 onClick={() => setLabelFilter(lbl)}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all shrink-0 cursor-pointer ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-blue-600 text-white shadow-xs font-semibold'
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                 }`}
               >
@@ -95,24 +92,14 @@ export const FilterBar: React.FC = () => {
 
         <div className="h-4 w-px bg-slate-200 hidden md:block" />
 
-        {/* 3. Due Date Filter Dropdown */}
+        {/* 3. Interactive Due Date Calendar Popover with Task Indicators */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-            <Calendar className="w-3 h-3 text-slate-400" />
-            <span>Due Date:</span>
-          </span>
-          <select
-            value={selectedDueDateFilter}
-            onChange={(e) => setDueDateFilter(e.target.value)}
-            className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 outline-none focus:border-blue-400 cursor-pointer"
-          >
-            <option value="All">All Dates</option>
-            {uniqueDueDates.map((dDate) => (
-              <option key={dDate} value={dDate}>
-                {dDate}
-              </option>
-            ))}
-          </select>
+          <span className="text-xs font-semibold text-slate-500">Due Date:</span>
+          <CalendarFilterPopover
+            selectedDate={selectedDueDateFilter}
+            taskDueDates={taskDueDates}
+            onSelectDate={(dateStr) => setDueDateFilter(dateStr)}
+          />
         </div>
       </div>
 

@@ -70,9 +70,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ onTaskClick, onAddTask
           return false;
         }
 
-        // 3. Due Date filter
-        if (selectedDueDateFilter !== 'All' && task.dueDate !== selectedDueDateFilter) {
-          return false;
+        // 3. Due Date filter (Flexible matching: exact string OR day+month prefix match)
+        if (selectedDueDateFilter !== 'All') {
+          if (!task.dueDate) return false;
+          const isExact = task.dueDate === selectedDueDateFilter;
+          const isPrefixMatch =
+            selectedDueDateFilter.startsWith(task.dueDate) ||
+            task.dueDate.startsWith(selectedDueDateFilter);
+          if (!isExact && !isPrefixMatch) {
+            return false;
+          }
         }
 
         // 4. Search query filter (matches title, description, assignee name, label, due date)

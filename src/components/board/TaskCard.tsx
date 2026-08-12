@@ -1,7 +1,7 @@
 import React from 'react';
 import { Task, User } from '../../types/task';
 import { AvatarStack } from '../common/AvatarStack';
-import { Timer, CheckSquare, MessageSquare, Paperclip } from 'lucide-react';
+import { Timer, CheckSquare, MessageSquare, Paperclip, Flame, Zap, Coffee } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -54,6 +54,30 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOver
     }
   };
 
+  // Priority Visual Differentiation (Badge)
+  const getPriorityStyle = (priority?: Task['priority']) => {
+    switch (priority) {
+      case 'High':
+        return {
+          badge: 'bg-red-50 text-red-600 border-red-200',
+          icon: <Flame className="w-3 h-3 text-red-500" />,
+        };
+      case 'Low':
+        return {
+          badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          icon: <Coffee className="w-3 h-3 text-emerald-600" />,
+        };
+      case 'Medium':
+      default:
+        return {
+          badge: 'bg-amber-50 text-amber-700 border-amber-200',
+          icon: <Zap className="w-3 h-3 text-amber-600" />,
+        };
+    }
+  };
+
+  const priorityMeta = getPriorityStyle(task.priority);
+
   return (
     <div
       ref={setNodeRef}
@@ -61,9 +85,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOver
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`task-card group relative bg-slate-100 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing overflow-hidden mb-3 select-none ${
-        isDragging ? 'ring-2 ring-blue-500 opacity-30 shadow-xl' : ''
-      }`}
+      className={`task-card group relative bg-slate-100 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-grab active:cursor-grabbing overflow-hidden mb-3 select-none ${isDragging ? 'ring-2 ring-blue-500 opacity-30 shadow-xl' : ''}`}
     >
       {/* Cover Image */}
       {task.coverImage && (
@@ -77,8 +99,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOver
       )}
 
       <div className="p-3.5 flex flex-col gap-2.5">
-        {/* Label Badge */}
-        <div className="flex items-center justify-between">
+        {/* Label Badge & Priority Badge */}
+        <div className="flex items-center justify-between gap-1 flex-wrap">
           <span
             className={`px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide border ${getLabelStyle(
               task.label
@@ -86,15 +108,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOver
           >
             {task.label}
           </span>
+
+          {/* Priority Badge */}
+          {task.priority && (
+            <span
+              className={`px-2 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 shadow-2xs ${priorityMeta.badge}`}
+            >
+              {priorityMeta.icon}
+              <span>{task.priority}</span>
+            </span>
+          )}
         </div>
 
         {/* Progress Bar (Checklist progress) */}
         {totalSubtasks > 0 && (
-          <div className="w-full bg-blue-200 h-1 rounded-full overflow-hidden my-0.5">
+          <div className="w-full bg-slate-300 h-1.5 rounded-full overflow-hidden my-0.5">
             <div
-              className={`h-full transition-all duration-300 ${
-                progressPercent === 100 ? 'bg-emerald-500' : 'bg-blue-500'
-              }`}
+              className={`h-full transition-all duration-300 ${progressPercent === 100 ? 'bg-emerald-500' : 'bg-blue-500'
+                }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -119,9 +150,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, users, onClick, isOver
             {/* Checklist Count */}
             {totalSubtasks > 0 && (
               <div
-                className={`flex items-center gap-1 ${
-                  progressPercent === 100 ? 'text-emerald-600 font-medium' : 'text-slate-500'
-                }`}
+                className={`flex items-center gap-1 ${progressPercent === 100 ? 'text-emerald-600 font-medium' : 'text-slate-500'
+                  }`}
                 title="Subtasks"
               >
                 <CheckSquare className="w-3.5 h-3.5" />

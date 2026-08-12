@@ -134,8 +134,8 @@ export const useTaskStore = create<TaskState>()(
           type === 'success'
             ? 'Berhasil'
             : type === 'danger'
-            ? 'Dihapus'
-            : 'Pemberitahuan';
+              ? 'Dihapus'
+              : 'Pemberitahuan';
         set({
           toast: {
             id: `toast-${Date.now()}`,
